@@ -1,7 +1,6 @@
 {
   "name": "project",
   "version": "1.0.0",
-  "description": "",
   "main": "app.js",
   "scripts": {
     "deploy": "gh-pages -d dist"
@@ -15,8 +14,10 @@
   "bugs": {
     "url": "https://github.com/362627626/Project/issues"
   },
-  "homepage": "https://362627626.github.io/tetris",
+  "homepage": "https://362627626.github.io/project",
   "dependencies": {
     "gh-pages": "^3.2.3"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
