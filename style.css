@@ -8,15 +8,16 @@
     flex-wrap: wrap;
     height: 400px;
     width: 200px;
-    margin-top: 120px;
-    margin-left: 15%;
-    margin-right: 15%;
-    border: 1px solid gray;
+    margin: auto;
+    border: 1px solid whitesmoke;
     border-radius: 2%;
 }
 
 body {
-      background: radial-gradient(
+    width: 600px;
+    height: 600px;
+    margin: auto;
+    background: radial-gradient(
     circle,
     rgba(175, 196, 174, 1) 0%,
     rgba(104, 204, 191, 1) 89%,
@@ -24,11 +25,34 @@ body {
   );
 }
 
+header {
+  margin: auto;
+}
+
+h3 {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 23px;
+  text-transform: uppercase;
+  text-align: center;
+  color: #d8edea;
+  font-size: 20px;
+  margin-top: 14%;
+}
+
+h1 {
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  text-align: center;
+  color: #d8edea;
+  font-size: 40px;
+  letter-spacing: 13px;
+}
+
+
 #grid .cell {
     margin: 0;
     padding: 0;
     height: 20px;
     width: 20px;
-    /* background-color: brown; */
 }
 

@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    /* Global variable section */
+    //board data 
     const grid = document.getElementById('grid')
     const squares = Array.from(grid.querySelectorAll('div'))
 
@@ -8,17 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeId
     let lastRowIndex = buildLastRowIndex()
 
+    // Tetromino data
     const oShape = [0, 1, width, width+1]
     const zShape = [0, 1, width+1, width+2]
     const lShape = [0, width, width+1, width+2]
     const iShape = [0, width, width*2, width*3]
     const tShape = [width, 1, width+1, width+2]
     const iTetromino = [oShape, zShape, lShape, iShape, tShape]
-
     let randomShape = Math.floor(Math.random() * iTetromino.length)
     let currentShape = iTetromino[randomShape]
 
 
+    // brick color data 
     let brickColor = ["url('images/blue_block.png')", 
                       "url('images/green_block.png')",
                       "url('images/navy_block.png')",
@@ -31,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentColor = brickColor[randomShape]
 
 
-    // Data initialization section
+    /* Data initialization section */
     function buildLastRowIndex() {
         let lastRow = []
         for (let i=190; i<200; i++) {
@@ -40,12 +44,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return lastRow
     }
 
-    // Navigation functions
+    /* Navigation functions section */
     function moveDown() {
         undrawOnGrid()
         currentPosition += adjustment
         drawOnGrid()
         freeze()
+    }
+
+    function moveLeft() {
+        undrawOnGrid()
+        if(currentPosition % width != 0) {
+            currentPosition -= 1
+        }
+        drawOnGrid()
+    }
+
+    function moveRight() {
+        undrawOnGrid()
+        let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
+        if(!isOnRightEdge) {
+            currentPosition += 1
+        }
+        drawOnGrid()
+    }
+
+    let drop =() => {
+        let i = 0
+        while(i < 15){
+            moveDown()
+            i++
+        }
+        currentPosition = 3 
     }
 
     function freeze() {
@@ -70,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     
         if (isBottom || isSettled) {
-           
             currentShape.forEach(index => {
                 squares[index + currentPosition].style.backgroundImage = currentColor
                 squares[index + currentPosition].classList.add("block")
@@ -85,48 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ids.forEach(id => {
                 clearInterval(id)
             })
-
         }
     }
 
-    function drawOnGrid() {
-        currentShape.forEach(index => {
-            squares[index + currentPosition].style.backgroundImage = currentColor
-        })
-    }
-
-    function undrawOnGrid() {
-        currentShape.forEach(index => {
-            squares[index + currentPosition].style.backgroundImage = "none"
-        })
-    }
-
-    let drop =() => {
-        let i = 0
-        while(i < 15){
-            moveDown()
-            i++
-        }
-        currentPosition = 3 
-    }
-
-    function moveLeft() {
-        undrawOnGrid()
-        if(currentPosition % width != 0) {
-            currentPosition -= 1
-        }
-        drawOnGrid()
-    }
-
-    function moveRight() {
-        undrawOnGrid()
-        let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
-        if(!isOnRightEdge) {
-            currentPosition += 1
-        }
-        drawOnGrid()
-    }
-
+    /* action fuctions section*/
     let keys = []
     let ids = []
     let downSpeed = 50
@@ -156,6 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
         ids.forEach(id => {
             clearInterval(id)
             downSpeed = 50
+        })
+    }
+
+    function drawOnGrid() {
+        currentShape.forEach(index => {
+            squares[index + currentPosition].style.backgroundImage = currentColor
+        })
+    }
+
+    function undrawOnGrid() {
+        currentShape.forEach(index => {
+            squares[index + currentPosition].style.backgroundImage = "none"
         })
     }
 
