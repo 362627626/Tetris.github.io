@@ -1,3 +1,13 @@
+
+:root {
+  /* default font size in browsers is 16px = 1em, we make
+     things easier for us and make 10px our base size.
+     We have 10/16 = 0.625 = 1rem as it is set on root element.
+     So 1rem is now 10px throughout our stylesheet.*/
+  font-size: 0.625em;
+}
+
+
 .html {
     padding: 0;
     margin: 0;
@@ -6,16 +16,16 @@
 #grid {
     display: flex;
     flex-wrap: wrap;
-    height: 400px;
-    width: 200px;
-    margin: auto;
+    height: 40emx;
+    width: 20em;
     border: 1px solid whitesmoke;
     border-radius: 2%;
-}
+    margin: auto;
 
+}
+/* 
 body {
     width: 600px;
-    height: 600px;
     margin: auto;
     background: radial-gradient(
     circle,
@@ -23,20 +33,42 @@ body {
     rgba(104, 204, 191, 1) 89%,
     rgba(94, 191, 178, 1) 100%
   );
+} */
+
+/* .container-board {
+  display: flex;
+  flex-wrap: wrap;
+  width: 600px;
+  height: 500px;
+  margin: auto;
+
+} */
+/* 
+.container-left {
+  width: 50%;
+  height: 100%;
+  border: 1px solid white;
+
 }
 
+.container-right {
+  width: 49%;
+  height: 100%;
+  border: 1px solid white;
+} */
+
 header {
+  
   margin: auto;
 }
 
 h3 {
   font-family: 'Montserrat', sans-serif;
-  letter-spacing: 23px;
+  letter-spacing: 1em;
   text-transform: uppercase;
   text-align: center;
   color: #d8edea;
-  font-size: 20px;
-  margin-top: 14%;
+  font-size: 1em;
 }
 
 h1 {
@@ -44,15 +76,47 @@ h1 {
   text-transform: uppercase;
   text-align: center;
   color: #d8edea;
-  font-size: 40px;
-  letter-spacing: 13px;
+  font-size: 2em;
+  letter-spacing: 1em;
 }
 
 
 #grid .cell {
-    margin: 0;
-    padding: 0;
-    height: 20px;
-    width: 20px;
+    height: 2em;
+    width: 2em;
 }
+/* 
+@media screen and (max-width: 800px) {
+  .container-board{
+    width: 200px;
+    
+  }
 
+  body {
+    width: 220px;
+  }
+  .container-left {
+    margin: auto;
+    width: 100%;
+    height: 80%;
+  }
+  .container-right {
+    width: 100%;
+    height: 10%;
+  }
+
+  header {
+    width: 100%;
+  }
+
+  h1 {
+    font-size: 10px;
+  }
+
+
+  #grid {
+    margin: 0 auto;
+  }
+
+  
+} */
