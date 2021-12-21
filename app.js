@@ -2,31 +2,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* Global variable section */
     //board data 
-    const grid = createGrid()
-    const squares = Array.from(grid.querySelectorAll('div'))
+    const grid = createGrid("grid", 200)
+    const display = createGrid("next-shape", 36)
+    let score = document.getElementById("score")
+    let scoreCount = 0
 
+    let displaySquare =  Array.from(display.querySelectorAll('div'))
+    let squares = Array.from(grid.querySelectorAll('div'))
+
+    let musicBox = document.getElementById("music-box")
+
+    const animation = createGrid("animation", 200)
+    let animationSquare = Array.from(animation.querySelectorAll('div'))
+
+    let isGameOver = false
+    let pause = true
     let reachBottom = false
-    let currentPosition = 4
+    let currentPosition = 3
+    let dropInterval
     let width = 10
     let timeId
+    let moveId
     let lastRowIndex = buildLastRowIndex()
 
     // Tetromino data
-    const oShape = [0, 1, width, width+1]
+    const oShape = [[0, 1, width, width+1],
+                    [0, 1, width, width+1],
+                    [0, 1, width, width+1],
+                    [0, 1, width, width+1]]
+
     const zShape = [[0, 1, width+1, width+2],
                     [2, width+1, width+2, width*2+1],
                     [0, 1, width+1, width+2],
                     [2, width+1, width+2, width*2+1]]
 
-    const lShape = [0, width, width+1, width+2]
-    const iShape = [0, width, width*2, width*3]
-    const tShape = [width, 1, width+1, width+2]
-    const iTetromino = [oShape, zShape, lShape, iShape, tShape]
+    const sShape = [[1, 2, width, width+1],
+                    [1, width+1, width+2, width*2+2],
+                    [1, 2, width, width+1],
+                    [1, width+1, width+2, width*2+2]]
+
+    const lShape = [[0, width, width*2, width*2+1],
+                    [0, 1, 2, width],
+                    [1, 2, width+2, width*2+2],
+                    [width*2, width*2+1, width*2+2, width+2]]
+
+    const iShape = [[0, 1, 2, 3],
+                    [0, width, width*2, width*3],
+                    [0, 1, 2, 3],
+                    [0, width, width*2, width*3]]
+
+    const tShape = [[1, width, width+1, width+2],
+                    [1, width+1, width*2+1, width+2],
+                    [width, width+1, width+2, width*2+1],
+                    [width, 1, width+1, width*2+1]]
+
+    const iTetromino = [oShape, zShape, sShape, lShape, iShape, tShape]
     let randomShape = Math.floor(Math.random() * iTetromino.length)
     let rotationIndex = 0
-    let currentShape = iTetromino[1][rotationIndex]
-
-
+    let currentShape = iTetromino[randomShape][rotationIndex]
 
     // brick color data 
     let brickColor = ["url('images/blue_block.png')", 
@@ -35,17 +68,29 @@ document.addEventListener('DOMContentLoaded', () => {
                       "url('images/peach_block.png')",
                       "url('images/pink_block.png')",
                       "url('images/purple_block.png')",
-                      "url('images/Yellow_block.png')" ]
+                      "url('images/yellow_block.png')" ]
 
     let randomColor = Math.floor(Math.random() * brickColor.length)
     let currentColor = brickColor[randomShape]
 
+    const oShapeSmall = [14, 15, 20, 21]
+    const zShapeSmall = [14, 15, 21, 22]
+    const sShapeSmall = [14, 15, 19, 20]
+    const lShapeSmall = [20, 21, 22, 16]
+    const iShapeSmall = [13, 14, 15, 16]
+    const tShapeSmall = [15, 20, 21, 22] 
+
+    const smallITeromino = [oShapeSmall, zShapeSmall, sShapeSmall, lShapeSmall, iShapeSmall, tShapeSmall]
+    let randomShapeSmall = Math.floor(Math.random() * smallITeromino.length)
+    let currentShapeSmall = smallITeromino[randomShapeSmall]
+    currentShapeSmall.forEach(index => displaySquare[index].style.backgroundImage = brickColor[randomColor])
+
 
     /* Data initialization section */
-    function createGrid() {
+    function createGrid(name, count) {
         // the main grid
-        let grid = document.getElementById("grid")
-        for (let i = 0; i < 200; i++) {
+        let grid = document.getElementById(name)
+        for (let i = 0; i < count; i++) {
           let cell = document.createElement("div")
           cell.classList.add('cell')
           grid.appendChild(cell)
@@ -64,50 +109,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* Navigation functions section */
     function moveDown() {
-        undrawOnGrid()
-        currentPosition = currentPosition += width
-        drawOnGrid()
-        freeze()
+        if(pause) {
+            let isSettled = currentShape.some(index => {
+                if (currentPosition + index + width < 200){
+                    if (squares[currentPosition + index + width].classList.contains(
+                        "block")) {
+                            return true
+                        }
+                    return false
+                }
+                return false
+            })
+            if(isSettled) {
+                currentShape.forEach(index => {
+                    squares[index + currentPosition].style.backgroundImage = currentColor
+                    squares[index + currentPosition].style.backgroundSize = '20px'
+                    squares[index + currentPosition].classList.add("block")
+                })
+                currentPosition = 3
+                drawOnGrid() 
+
+            }
+            undrawOnGrid() 
+            currentPosition = currentPosition += width
+            drawOnGrid() 
+            freeze()
+        }
     }
 
     function moveLeft() {
         undrawOnGrid()
         let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
-        if(!isOnLeftEdge) {
+        let isConflict = currentShape.every(index => !isOnLeftEdge && !squares[index + currentPosition - 1].classList.contains('block'))
+        if(!isOnLeftEdge && isConflict) {
             currentPosition -= 1
         }
         drawOnGrid()
-
     }
 
-    function drop() {
-        while(!reachBottom) {
-            moveDown()
-        }          
-
-        reachBottom = false
+    function drop() {     
+        dropInterval = setInterval(moveDown, 1)
+        var myAudio = document.createElement("audio");
+                myAudio.src = "force-hit.mp3";
+                myAudio.play();
     }
 
     function moveRight() {
         undrawOnGrid()
         let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
-        if(!isOnRightEdge) {
+        let isConflict = currentShape.every(index => !isOnRightEdge && !squares[index + currentPosition + 1].classList.contains('block'))
+        if(!isOnRightEdge && isConflict) {
             currentPosition += 1
         }
         drawOnGrid()
     }
 
     function rotate() {
-        undrawOnGrid()
         rotationIndex ++
         if(rotationIndex > 3) {
             rotationIndex = 0
         }
-        currentShape = iTetromino[1][rotationIndex]
-        drawOnGrid()
-
+        let nextRotation = rotationIndex
+        let isOnLeftEdge = iTetromino[randomShape][nextRotation].some(index => (index + currentPosition) % width === 0)
+        let isInRightEdge = iTetromino[randomShape][nextRotation].some(index => (index + currentPosition) % 10 == 9)
+        let isTaken = iTetromino[randomShape][nextRotation].some(index => squares[index + currentPosition].classList.contains("block"))
+            if(isOnLeftEdge && isInRightEdge) { 
+                rotationIndex --
+            
+            } else if (isTaken) {
+                rotationIndex --
+            }
+            else {
+                undrawOnGrid()
+                currentShape = iTetromino[randomShape][rotationIndex]
+                drawOnGrid()
+                sound("select.mp3")
+            }
     }
 
+    let colorToggle = true
     function freeze() {
         let isBottom = currentShape.some(index => {
             for(let i=0; i<lastRowIndex.length; i++) {
@@ -135,34 +215,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 squares[index + currentPosition].style.backgroundSize = '20px'
                 squares[index + currentPosition].classList.add("block")
             })
-            currentPosition = 4
+            currentPosition = 3
             randomColor = Math.floor(Math.random() * brickColor.length)
             currentColor = brickColor[randomColor]
-            randomShape = Math.floor(Math.random() * iTetromino.length)
-            currentShape = iTetromino[1][rotationIndex]
-          
+            randomShape = randomShapeSmall
+           
+            displaySquare.forEach(cell => cell.style.backgroundImage = 'none')
+            currentShape = iTetromino[randomShape][rotationIndex]
+            randomShapeSmall = Math.floor(Math.random() * smallITeromino.length)
+            currentShapeSmall = smallITeromino[randomShapeSmall]
+            currentShapeSmall.forEach(index => displaySquare[index].style.backgroundImage = brickColor[randomColor])
+            
             reachBottom = true
             continueGame = false
+            clearInterval(dropInterval)
+            checkGameOver()
+            checkScore()
             drawOnGrid()
         }
     }
 
     /* action fuctions section*/
     let keys = []
-
     function move() {
-        let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
-        if(keys && keys[37] && !isOnLeftEdge) {
-            moveLeft()
+        try {
+            if(pause) {
+                let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
+                if(keys && keys[37] && !isOnLeftEdge) {
+                    moveLeft()
+                }
+                let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
+                if(keys && keys[39] && ! isOnRightEdge) {
+                    moveRight()
+                }
+                if (keys && keys[40]) {
+                    moveDown()
+                }
+            }
+        } catch {
+            currentPosition = 3
+            drawOnGrid()
         }
-        let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
-        if(keys && keys[39] && ! isOnRightEdge) {
-            moveRight()
-        }
-        if (keys && keys[40]) {
-            moveDown()
-        }
-
     }
     
     let dropDisable = false
@@ -170,15 +263,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function keydown(e) {
         keys[e.keyCode] = (e.type == "keydown")
 
-        if (e.keyCode === 32 && !dropDisable) {
+        if (e.keyCode === 32 && !dropDisable && !isGameOver) {
             drop()
             dropDisable = true
         }
-        if(e.keyCode === 38 && !rotateDisable) {
+        if(e.keyCode === 38 && !rotateDisable && !isGameOver) {
             rotate()
             rotateDisable = true
         }
-
     }
 
     function keyUp(e) {
@@ -203,31 +295,104 @@ document.addEventListener('DOMContentLoaded', () => {
             squares[index + currentPosition].style.backgroundImage = 'none'
         })
     }
+    
+    function checkGameOver() {
+        let initialPostion = 4
+        let isGameOver = currentShape.some(index => {
+            if (initialPostion + index + width < 200){
+                if (squares[initialPostion + index + width].classList.contains(
+                    "block")) {
+                        return true
+                    }
+                return false
+            }
+            return false
+        })
+        if (isGameOver) {
+            let gameOver = document.getElementById('gameOver')
+            gameOver.style.display = "block"
+            isGameOver = true
 
-    function sound(src) {
-        this.sound = document.createElement("audio")
-        this.sound.src = src;
-        this.sound.setAttribute("preload", "auto")
-        this.sound.setAttribute("controls", "none")
-        this.sound.style.display = "none"
-        this.sound.loop = true
-        document.body.appendChild(this.sound)
-        this.play = function(){
-            this.sound.play()
+            clearInterval(timeId)
+            clearInterval(moveId)
+            sound("gameover.mp3")
+            musicBox.pause()
+            drawOnGrid()
         }
-        this.stop = function(){
-            this.sound.pause()
-        }    
     }
 
+    let lineRemoveCount = 0
+    function checkScore() {   
+        animationSquare.forEach(cell => cell.classList.remove('flash'))
+        animationSquare.forEach(cell => cell.classList.remove('flash2'))
+        for(let row=0; row<200; row+=10){
+            
+            let currentRow = [row, row+1, row+2, row+3, row+4, row+5, row+6, row+7, row+8, row+9]
+            let isFull = currentRow.every(index => squares[index].classList.contains('block'))
+  
+            if(isFull) {
+                pause = false
+                lineRemoveCount ++
+                currentRow.forEach(index => {
+                    squares[index].style.backgroundImage = 'none'
+                    squares[index].classList.remove('block')
+                })
 
+                clearInterval(timeId)
+                clearInterval(moveId)
+                
+                pause = true;
+
+                let removedSquares = squares.splice(row, width)
+                squares = removedSquares.concat(squares)
+                
+                squares.forEach(cell => {
+                    grid.appendChild(cell)
+                })      
+   
+
+                if(colorToggle) {
+                    currentRow.forEach(index => {
+                        animationSquare[index].classList.add('flash')
+                    })
+                    colorToggle = false
+                } else {
+                    currentRow.forEach(index => {
+                        animationSquare[index].classList.add('flash2')
+                    })
+                    colorToggle = true
+                }
+                timeId = setInterval(moveDown, 500)
+                moveId = setInterval(move, 60); 
+                
+            }
+        }
+        if(lineRemoveCount >= 4) {
+            sound("line-removal4.mp3")
+            lineRemoveCount = 0
+            scoreCount += 1000
+            score.innerHTML = scoreCount
+        } 
+        if(lineRemoveCount >= 1 && lineRemoveCount <= 3) {
+            sound("clear.wav")
+            scoreCount += 100 * lineRemoveCount
+            lineRemoveCount = 0
+            score.innerHTML = scoreCount
+        } 
+        
+    }
+
+    function sound(src) {
+        var myAudio = document.createElement("audio");
+        myAudio.src = src;
+        myAudio.play();
+    }
     
-    mySound = new sound("Tetris.mp3");
-    //mySound.play();
-   // drawOnGrid()
+
+    drawOnGrid()
     document.addEventListener('keydown', keydown)
     document.addEventListener('keyup', keyUp)
-    setInterval(move, 60); 
+    moveId = setInterval(move, 60); 
     timeId = setInterval(moveDown, 1000)
 
 })
