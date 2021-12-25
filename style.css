@@ -236,6 +236,14 @@ h1 {
     width: 100px;
   }
 
+  .controller {
+    width: 100px;
+  }
+
+  button {
+    font-size: 10px;
+  }
+
   header {
     width: 100%;
   }
