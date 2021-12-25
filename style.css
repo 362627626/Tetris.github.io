@@ -84,6 +84,7 @@ body {
 
 .container-display {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-content: center;
   width: 20em;
@@ -93,7 +94,19 @@ body {
 
 .display {
   width: 14em;
-  height: 20em;
+  height: 16em;
+  border: gold solid 1px;
+  border-radius: 3%;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D0D0D0), to(#f0f0f0));
+  
+}
+
+.controller {
+  margin-top: 3em;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  width: 14em;
+  height: 16em;
   border: gold solid 1px;
   border-radius: 3%;
   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D0D0D0), to(#f0f0f0));
@@ -113,7 +126,6 @@ body {
   text-align: center;
   color: #d8edea;
   font-size: 1em;
-  margin-top: -8%;
 }
 
 
@@ -161,7 +173,7 @@ h1 {
   position: fixed;
   width: 500px;
   height: 200px;
-  top: 50%;
+  top: 60%;
   left: 50%;
   margin-top: -100px; /* Negative half of height. */
   margin-left: -250px; /* Negative half of width. */
@@ -230,6 +242,11 @@ h1 {
 
   h1 {
     font-size: 10px;
+  }
+
+  .display h4 {
+    margin-top: 2em;
+    font-size: 8px;
   }
 
 

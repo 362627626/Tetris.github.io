@@ -9,11 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let displaySquare =  Array.from(display.querySelectorAll('div'))
     let squares = Array.from(grid.querySelectorAll('div'))
-
     let musicBox = document.getElementById("music-box")
-
     const animation = createGrid("animation", 200)
     let animationSquare = Array.from(animation.querySelectorAll('div'))
+
+    // Controller 
+    let leftButton = document.getElementById("left")
+    let rotateButton = document.getElementById("up")
+    let rightButton = document.getElementById("right")
+    let downButton = document.getElementById("down")
+    let dropButton = document.getElementById("drop")
+    let startButton = document.getElementById("start")
+    let pauseButton = document.getElementById("pause")
+    let resetButton = document.getElementById("reset")
+
+
+
 
     let isGameOver = false
     let pause = true
@@ -109,32 +120,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* Navigation functions section */
     function moveDown() {
-        if(pause) {
-            let isSettled = currentShape.some(index => {
-                if (currentPosition + index + width < 200){
-                    if (squares[currentPosition + index + width].classList.contains(
-                        "block")) {
-                            return true
-                        }
+        try{
+            if(pause) {
+                let isSettled = currentShape.some(index => {
+                    if (currentPosition + index + width < 200){
+                        if (squares[currentPosition + index + width].classList.contains(
+                            "block")) {
+                                return true
+                            }
+                        return false
+                    }
                     return false
-                }
-                return false
-            })
-            if(isSettled) {
-                currentShape.forEach(index => {
-                    squares[index + currentPosition].style.backgroundImage = currentColor
-                    squares[index + currentPosition].style.backgroundSize = '20px'
-                    squares[index + currentPosition].classList.add("block")
                 })
-                currentPosition = 3
+                if(isSettled) {
+                    currentShape.forEach(index => {
+                        squares[index + currentPosition].style.backgroundImage = currentColor
+                        squares[index + currentPosition].style.backgroundSize = '20px'
+                        squares[index + currentPosition].classList.add("block")
+                    })
+                    currentPosition = 3
+                    drawOnGrid() 
+    
+                }
+                undrawOnGrid() 
+                currentPosition = currentPosition += width
                 drawOnGrid() 
-
+                freeze()
             }
-            undrawOnGrid() 
-            currentPosition = currentPosition += width
-            drawOnGrid() 
-            freeze()
+        } catch {
+            currentShape = iTetromino[randomShape][rotationIndex]
+            currentPosition = 3
+            drawOnGrid()
         }
+        
     }
 
     function moveLeft() {
@@ -253,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch {
+            currentShape = iTetromino[randomShape][rotationIndex]
             currentPosition = 3
             drawOnGrid()
         }
@@ -284,10 +303,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawOnGrid() {
-        currentShape.forEach(index => {
-            squares[index + currentPosition].style.backgroundSize = '20px'
-            squares[index + currentPosition].style.backgroundImage = currentColor
-        })
+        try {
+            currentShape.forEach(index => {
+                squares[index + currentPosition].style.backgroundSize = '20px'
+                squares[index + currentPosition].style.backgroundImage = currentColor
+            })
+        }  catch {
+            currentShape = iTetromino[randomShape][rotationIndex]
+            currentPosition = 3
+            drawOnGrid()
+        }
+
     }
 
     function undrawOnGrid() {
@@ -387,6 +413,16 @@ document.addEventListener('DOMContentLoaded', () => {
         myAudio.src = src;
         myAudio.play();
     }
+
+
+    leftButton.addEventListener("click", moveLeft)
+    rotateButton.addEventListener("click", rotate)
+    rightButton.addEventListener("click", moveRight)
+    downButton.addEventListener("click", moveDown)
+    dropButton.addEventListener("click", drop)
+    startButton.addEventListener("click", moveLeft)
+    pauseButton.addEventListener("click", moveLeft)
+    resetButton.addEventListener("click", moveLeft)
     
 
     drawOnGrid()
