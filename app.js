@@ -7,9 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = document.getElementById("score")
     let scoreCount = 0
 
+    let isGameOver = false
+    let currentPosition = 3
+    let dropInterval
+    let width = 10
+    let timeId
+    let moveId
+    let lastRowIndex = buildLastRowIndex()
+
     let displaySquare =  Array.from(display.querySelectorAll('div'))
     let squares = Array.from(grid.querySelectorAll('div'))
-    let musicBox = document.getElementById("music-box")
     const animation = createGrid("animation", 200)
     let animationSquare = Array.from(animation.querySelectorAll('div'))
 
@@ -21,21 +28,62 @@ document.addEventListener('DOMContentLoaded', () => {
     let dropButton = document.getElementById("drop")
     let startButton = document.getElementById("start")
     let pauseButton = document.getElementById("pause")
-    let resetButton = document.getElementById("reset")
+    let restartButton = document.getElementById("restart")
+    let musicButton =  document.getElementById("music")
 
+    // Audio 
+    var dropAudio = new Howl({
+        src: ['audio/force-hit.mp3'],
+        volume: 2.8
+        });
+        
+    var rotateAudio =  new Howl({
+        src: ['audio/select.mp3'],
+        volume: 2.8
+        });
 
+    var scoreAudio =  new Howl({
+        src: ['audio/clear.wav'],
+        volume: 2.8
+        });
+  
+    var scoreMutipleAudio =  new Howl({
+        src: ['audio/line-removal4.mp3'],
+        volume: 2.8
+        });
 
+    var pauseAudio =  new Howl({
+        src: ['audio/pause.mp3'],
+        volume: 2.8
+        });
 
-    let isGameOver = false
-    let pause = true
-    let reachBottom = false
-    let currentPosition = 3
-    let dropInterval
-    let width = 10
-    let timeId
-    let moveId
-    let lastRowIndex = buildLastRowIndex()
+    var resumeAudio =  new Howl({
+        src: ['audio/start.mp3'],
+        volume: 2.8
+        });
+    
+    var gameOverAudio =  new Howl({
+        src: ['audio/gameOver.mp3'],
+        volume: 2.8
+        });
+    
+    var terisOriginalAudio =  new Howl({
+        src: ['audio/Tetris-original.mp3'],
+        loop: true,
+        volume: 0.5
+        });
 
+    var terisSpecialAudio =  new Howl({
+        src: ['audio/Tetris-special.mp3'],
+        loop: true,
+        volume: 0.5
+        });
+
+    var terisClassicAudio =  new Howl({
+        src: ['audio/Tetris-classic.mp3'],
+        loop: true,
+        volume: 0.5
+        });
     // Tetromino data
     const oShape = [[0, 1, width, width+1],
                     [0, 1, width, width+1],
@@ -57,6 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     [1, 2, width+2, width*2+2],
                     [width*2, width*2+1, width*2+2, width+2]]
 
+    const jShape = [[0, 1, width, width*2],
+                    [width, width*2, width*2+1, width*2+2],
+                    [2, width+2, width*2+2, width*2+1,],
+                    [0, 1, 2, width+2]]           
+
     const iShape = [[0, 1, 2, 3],
                     [0, width, width*2, width*3],
                     [0, 1, 2, 3],
@@ -67,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     [width, width+1, width+2, width*2+1],
                     [width, 1, width+1, width*2+1]]
 
-    const iTetromino = [oShape, zShape, sShape, lShape, iShape, tShape]
+    const iTetromino = [oShape, zShape, sShape, lShape, jShape, iShape, tShape]
     let randomShape = Math.floor(Math.random() * iTetromino.length)
     let rotationIndex = 0
     let currentShape = iTetromino[randomShape][rotationIndex]
@@ -88,10 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const zShapeSmall = [14, 15, 21, 22]
     const sShapeSmall = [14, 15, 19, 20]
     const lShapeSmall = [20, 21, 22, 16]
+    const jShapeSmall = [20, 21, 22, 28]
     const iShapeSmall = [13, 14, 15, 16]
     const tShapeSmall = [15, 20, 21, 22] 
 
-    const smallITeromino = [oShapeSmall, zShapeSmall, sShapeSmall, lShapeSmall, iShapeSmall, tShapeSmall]
+    const smallITeromino = [oShapeSmall, zShapeSmall, sShapeSmall, lShapeSmall, jShapeSmall, iShapeSmall, tShapeSmall]
     let randomShapeSmall = Math.floor(Math.random() * smallITeromino.length)
     let currentShapeSmall = smallITeromino[randomShapeSmall]
     currentShapeSmall.forEach(index => displaySquare[index].style.backgroundImage = brickColor[randomColor])
@@ -120,40 +174,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* Navigation functions section */
     function moveDown() {
-        try{
-            if(pause) {
-                let isSettled = currentShape.some(index => {
-                    if (currentPosition + index + width < 200){
-                        if (squares[currentPosition + index + width].classList.contains(
-                            "block")) {
-                                return true
-                            }
-                        return false
+        let isSettled = currentShape.some(index => {
+            if (currentPosition + index + width < 200){
+                if (squares[currentPosition + index + width].classList.contains(
+                    "block")) {
+                        return true
                     }
-                    return false
-                })
-                if(isSettled) {
-                    currentShape.forEach(index => {
-                        squares[index + currentPosition].style.backgroundImage = currentColor
-                        squares[index + currentPosition].style.backgroundSize = '20px'
-                        squares[index + currentPosition].classList.add("block")
-                    })
-                    currentPosition = 3
-                    drawOnGrid() 
-    
-                }
-                undrawOnGrid() 
-                currentPosition = currentPosition += width
-                drawOnGrid() 
-                freeze()
+                return false
             }
-        } catch {
-            currentShape = iTetromino[randomShape][rotationIndex]
+            return false
+        })
+        if(isSettled) {
+            currentShape.forEach(index => {
+                squares[index + currentPosition].style.backgroundImage = currentColor
+                squares[index + currentPosition].style.backgroundSize = '20px'
+                squares[index + currentPosition].classList.add("block")
+            })
             currentPosition = 3
-            drawOnGrid()
+            drawOnGrid() 
+
         }
-        
+        undrawOnGrid() 
+        currentPosition = currentPosition += width
+        drawOnGrid() 
+        freeze()
     }
+    
 
     function moveLeft() {
         undrawOnGrid()
@@ -167,9 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drop() {     
         dropInterval = setInterval(moveDown, 1)
-        var myAudio = document.createElement("audio");
-                myAudio.src = "force-hit.mp3";
-                myAudio.play();
+        dropAudio.play()
     }
 
     function moveRight() {
@@ -192,16 +236,19 @@ document.addEventListener('DOMContentLoaded', () => {
         let isInRightEdge = iTetromino[randomShape][nextRotation].some(index => (index + currentPosition) % 10 == 9)
         let isTaken = iTetromino[randomShape][nextRotation].some(index => squares[index + currentPosition].classList.contains("block"))
             if(isOnLeftEdge && isInRightEdge) { 
-                rotationIndex --
-            
+                if(rotationIndex > 0) {
+                    rotationIndex --
+                }
             } else if (isTaken) {
-                rotationIndex --
+                if(rotationIndex > 0) {
+                    rotationIndex --
+                }
             }
             else {
                 undrawOnGrid()
                 currentShape = iTetromino[randomShape][rotationIndex]
                 drawOnGrid()
-                sound("select.mp3")
+                rotateAudio.play()
             }
     }
 
@@ -256,24 +303,18 @@ document.addEventListener('DOMContentLoaded', () => {
     /* action fuctions section*/
     let keys = []
     function move() {
-        try {
-            if(pause) {
-                let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
-                if(keys && keys[37] && !isOnLeftEdge) {
-                    moveLeft()
-                }
-                let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
-                if(keys && keys[39] && ! isOnRightEdge) {
-                    moveRight()
-                }
-                if (keys && keys[40]) {
-                    moveDown()
-                }
+        if(!isGameOver) {
+            let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
+            if(keys && keys[37] && !isOnLeftEdge) {
+                moveLeft()
             }
-        } catch {
-            currentShape = iTetromino[randomShape][rotationIndex]
-            currentPosition = 3
-            drawOnGrid()
+            let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
+            if(keys && keys[39] && ! isOnRightEdge) {
+                moveRight()
+            }
+            if (keys && keys[40]) {
+                moveDown()
+            }
         }
     }
     
@@ -281,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let rotateDisable = false
     function keydown(e) {
         keys[e.keyCode] = (e.type == "keydown")
-
         if (e.keyCode === 32 && !dropDisable && !isGameOver) {
             drop()
             dropDisable = true
@@ -302,18 +342,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function drawOnGrid() {
-        try {
-            currentShape.forEach(index => {
-                squares[index + currentPosition].style.backgroundSize = '20px'
-                squares[index + currentPosition].style.backgroundImage = currentColor
-            })
-        }  catch {
-            currentShape = iTetromino[randomShape][rotationIndex]
-            currentPosition = 3
-            drawOnGrid()
+    let isPause = false 
+    function pauseGame() {
+        if(!isPause) {
+            pauseAudio.play()
+            let gameOver = document.getElementById('gameOver')
+            gameOver.innerHTML = "PAUSE"
+            gameOver.style.display = "block"
+            clearInterval(timeId)
+            timeId = null
+            isPause = true
+        }
+    }
+
+    function resumeGame() {
+        if(isPause) {
+            resumeAudio.play()
+            isPause = false
+            timeId = setInterval(moveDown, 1000)
+            let gameOver = document.getElementById('gameOver')
+            gameOver.style.display = "none"
         }
 
+    }
+
+    function drawOnGrid() {
+        currentShape.forEach(index => {
+            squares[index + currentPosition].style.backgroundSize = '20px'
+            squares[index + currentPosition].style.backgroundImage = currentColor
+        })
     }
 
     function undrawOnGrid() {
@@ -323,28 +380,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function checkGameOver() {
-        let initialPostion = 4
-        let isGameOver = currentShape.some(index => {
+        let initialPostion = 3
+        isGameOver = currentShape.some(index => {
             if (initialPostion + index + width < 200){
-                if (squares[initialPostion + index + width].classList.contains(
+                if (squares[initialPostion + index].classList.contains(
                     "block")) {
                         return true
                     }
                 return false
             }
-            return false
         })
         if (isGameOver) {
             let gameOver = document.getElementById('gameOver')
+            gameOver.innerHTML = "Game Over"
             gameOver.style.display = "block"
-            isGameOver = true
 
             clearInterval(timeId)
             clearInterval(moveId)
-            sound("gameover.mp3")
-            musicBox.pause()
+            gameOverAudio.play()
             drawOnGrid()
+            isGameOver = true
+            terisSpecialAudio.stop()
+            terisOriginalAudio.stop()
+            terisClassicAudio.stop()
+            restartButton.style.backgroundColor = "#82c91e"
         }
+    }
+
+    let soundSwitch = 0
+    function switchMusic() {
+        soundSwitch ++
+        soundSwitch = soundSwitch > 3 ? 0 : soundSwitch
+        musicButton.classList.remove('fas', 'fa-volume-mute')
+        musicButton.classList.add('fas', 'fa-music')
+        
+        if (soundSwitch == 0) {
+            terisSpecialAudio.play()
+            terisOriginalAudio.stop()
+            terisClassicAudio.stop()
+        } else if (soundSwitch == 1) {
+            terisOriginalAudio.play()
+            terisSpecialAudio.stop()
+            terisClassicAudio.stop()
+        } else if (soundSwitch == 2) {
+            terisClassicAudio.play()
+            terisSpecialAudio.stop()
+            terisOriginalAudio.stop()
+        } else {
+            musicButton.classList.remove('fas', 'fa-music')
+            musicButton.classList.add('fas', 'fa-volume-mute')
+            terisSpecialAudio.stop()
+            terisOriginalAudio.stop()
+            terisClassicAudio.stop()
+        }
+    }
+
+    function restart() {
+        squares.forEach(cell => cell.classList.remove("block"))
+        squares.forEach(cell => cell.style.backgroundImage = 'none')
+        drawOnGrid()
+        currentPosition = 3
+        moveId = setInterval(move, 60); 
+        timeId = setInterval(moveDown, 1000)
+        let gameOver = document.getElementById('gameOver')
+        gameOver.style.display = "none"
+        isGameOver = false
+        score.innerHTML = 0
+        soundSwitch = -1
+        switchMusic()
     }
 
     let lineRemoveCount = 0
@@ -357,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let isFull = currentRow.every(index => squares[index].classList.contains('block'))
   
             if(isFull) {
-                pause = false
+         
                 lineRemoveCount ++
                 currentRow.forEach(index => {
                     squares[index].style.backgroundImage = 'none'
@@ -367,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(timeId)
                 clearInterval(moveId)
                 
-                pause = true;
+     
 
                 let removedSquares = squares.splice(row, width)
                 squares = removedSquares.concat(squares)
@@ -393,19 +496,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             }
         }
+        if(lineRemoveCount == 3) {
+            scoreMutipleAudio.play()
+            lineRemoveCount = 0
+            scoreCount += 500
+
+        } 
         if(lineRemoveCount >= 4) {
-            sound("line-removal4.mp3")
+            scoreMutipleAudio.play()
             lineRemoveCount = 0
             scoreCount += 1000
-            score.innerHTML = scoreCount
+
         } 
-        if(lineRemoveCount >= 1 && lineRemoveCount <= 3) {
-            sound("clear.wav")
+        if(lineRemoveCount >= 1 && lineRemoveCount <= 2) {
+            scoreAudio.play()
             scoreCount += 100 * lineRemoveCount
             lineRemoveCount = 0
-            score.innerHTML = scoreCount
+           
         } 
-        
+        score.innerHTML = scoreCount
     }
 
     function sound(src) {
@@ -415,17 +524,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    leftButton.addEventListener("click", moveLeft)
-    rotateButton.addEventListener("click", rotate)
-    rightButton.addEventListener("click", moveRight)
-    downButton.addEventListener("click", moveDown)
-    dropButton.addEventListener("click", drop)
-    startButton.addEventListener("click", moveLeft)
-    pauseButton.addEventListener("click", moveLeft)
-    resetButton.addEventListener("click", moveLeft)
-    
+    leftButton.addEventListener("click", function() {
+        this.blur()
+        if(!isGameOver && !isPause) moveLeft()
+    }) 
+    rightButton.addEventListener("click", function() {
+        this.blur()
+        if(!isGameOver && !isPause) moveRight()
+    }) 
+    startButton.addEventListener("click", function() {
+        this.blur()
+        if(!isGameOver && isPause) {
+            startButton.style.background = "none"
+            resumeGame()
+        } 
+    }) 
+    pauseButton.addEventListener("click", function() {
+        this.blur()
+        if(!isGameOver) {
+            startButton.style.background = "#82c91e"
+            pauseGame()
+        } 
+    }) 
+    restartButton.addEventListener("click", function() {
+        this.blur()
+        if(isGameOver) {
+            restart()
+            restartButton.style.background = "none"
+        } 
+    }) 
+    downButton.addEventListener("click", function() {
+        this.blur()
+        if(!isGameOver && !isPause)  moveDown() 
+    })
+    rotateButton.addEventListener("click", function() {
+        if(!isGameOver && !isPause) {
+            rotate()
+            this.blur()
+            rotateDisable = true
+        }
+    })
+    dropButton.addEventListener("click", function() {
+        if(!isGameOver && !isPause) {
+            drop()
+            this.blur()
+            dropDisable = true
+        }
+    })
+    musicButton.addEventListener("click", function() {
+        this.blur()
+        if(!isGameOver)  switchMusic() 
+    })
 
     drawOnGrid()
+    terisSpecialAudio.play()
     document.addEventListener('keydown', keydown)
     document.addEventListener('keyup', keyUp)
     moveId = setInterval(move, 60); 

@@ -5,16 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="app.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src=https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js></script>
     <title>Document</title>
 </head>
-<audio id="music-box" controls autoplay loop >
-    <source src="Tetris-special.mp3" type="audio/mpeg"  >
-    Your browser does not support the audio element.
-  </audio>
-  
+
 <body>
-    <h1 id="gameOver">Game Over</h1>
     <header>
         <h3>Welcome </h3>
         <h1>to Tetris</h1>
@@ -22,6 +20,7 @@
     
     <div class="container-board">  
         <div class="container-left">
+            <h1 id="gameOver">Game Over</h1>
             <div id="animation">
             </div>
             <div id="grid">
@@ -37,15 +36,15 @@
                     <h4>Next Shape</h4>
                 </div>
                 <div class="controller">
-                    <button id="drop">Drop</button>
-                    <button id="up">↑</button>
-                    <button id="reset">Reset</button>
-                    <button id="left">←</button>
-                    <button id="down">↓</button>
-                    <button id="right">→</button>
-                    <button id="drop">Drop</button>
-                    <button id="start">Start</button>
-                    <button id="pause">Pause</button>
+                    <button id="drop" class="fas fa-caret-square-down" ></button>
+                    <button id="up" class="fas fa-arrow-alt-circle-up"></button>
+                    <button id="music" class="fas fa-music"></button>
+                    <button id="left" class="fas fa-arrow-alt-circle-left"></button>
+                    <button id="down" class="fas fa-arrow-alt-circle-down"></button>
+                    <button id="right"class="fas fa-arrow-alt-circle-right"></button>
+                    <button id="start" class="fas fa-play-circle"></button>
+                    <button id="pause" class="fas fa-pause-circle"></button>
+                    <button id="restart" class="fas fa-sync-alt"></button>
                 </div>
                 
                
