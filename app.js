@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     
     var gameOverAudio =  new Howl({
-        src: ['audio/gameOver.mp3'],
+        src: ['audio/gameover.mp3'],
         volume: 2.8
         });
     
@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loop: true,
         volume: 0.5
         });
+
     // Tetromino data
     const oShape = [[0, 1, width, width+1],
                     [0, 1, width, width+1],
@@ -150,7 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentShapeSmall = smallITeromino[randomShapeSmall]
     currentShapeSmall.forEach(index => displaySquare[index].style.backgroundImage = brickColor[randomColor])
 
-
     /* Data initialization section */
     function createGrid(name, count) {
         // the main grid
@@ -163,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return grid
       }
     
-
     function buildLastRowIndex() {
         let lastRow = []
         for (let i=190; i<200; i++) {
@@ -200,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
         freeze()
     }
     
-
     function moveLeft() {
         undrawOnGrid()
         let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
@@ -302,15 +300,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* action fuctions section*/
     let keys = []
+    let leftFirst = true
+    let rightFirst = true
+
+    let leftId
+    let rightId
+    let pressTimeLeft = 0
+    let pressTimeRight = 0
     function move() {
         if(!isGameOver) {
             let isOnLeftEdge = currentShape.some(index => (index + currentPosition) % width === 0)
             if(keys && keys[37] && !isOnLeftEdge) {
-                moveLeft()
+                if(leftFirst) {
+                    leftId = setInterval(() => { pressTimeLeft ++
+                    }, 3);
+                    leftFirst = false
+                    moveLeft()
+                }
+                if(pressTimeLeft > 20) {
+                    moveLeft()
+                }
+                
             }
             let isOnRightEdge = currentShape.some(index => (index + currentPosition) % width === width - 1)
             if(keys && keys[39] && ! isOnRightEdge) {
-                moveRight()
+                if(rightFirst) {
+                    rightId = setInterval(() => { pressTimeRight ++
+                    }, 3);
+                    rightFirst = false
+                    moveRight()
+                }
+                if(pressTimeRight > 20) {
+                    moveRight()
+                }
             }
             if (keys && keys[40]) {
                 moveDown()
@@ -320,6 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let dropDisable = false
     let rotateDisable = false
+
+    let leftCount = 0
     function keydown(e) {
         keys[e.keyCode] = (e.type == "keydown")
         if (e.keyCode === 32 && !dropDisable && !isGameOver) {
@@ -339,6 +363,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.keyCode === 38) {
             rotateDisable = false
+        }
+        if(e.keyCode === 37) {
+            pressTimeLeft = 0
+            clearInterval(leftId)
+            leftFirst = true
+
+        }
+        if(e.keyCode === 39) {
+            pressTimeRight = 0
+            clearInterval(rightId)
+            rightFirst = true
         }
     }
 
@@ -403,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
             terisSpecialAudio.stop()
             terisOriginalAudio.stop()
             terisClassicAudio.stop()
-            restartButton.style.backgroundColor = "#82c91e"
+            restartButton.classList.add("hint")
         }
     }
 
@@ -460,7 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let isFull = currentRow.every(index => squares[index].classList.contains('block'))
   
             if(isFull) {
-         
                 lineRemoveCount ++
                 currentRow.forEach(index => {
                     squares[index].style.backgroundImage = 'none'
@@ -470,15 +504,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(timeId)
                 clearInterval(moveId)
                 
-     
-
                 let removedSquares = squares.splice(row, width)
                 squares = removedSquares.concat(squares)
                 
                 squares.forEach(cell => {
                     grid.appendChild(cell)
                 })      
-   
 
                 if(colorToggle) {
                     currentRow.forEach(index => {
@@ -491,11 +522,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                     colorToggle = true
                 }
-                timeId = setInterval(moveDown, 500)
+                timeId = setInterval(moveDown, 1000)
                 moveId = setInterval(move, 60); 
-                
             }
         }
+
         if(lineRemoveCount == 3) {
             scoreMutipleAudio.play()
             lineRemoveCount = 0
@@ -512,7 +543,6 @@ document.addEventListener('DOMContentLoaded', () => {
             scoreAudio.play()
             scoreCount += 100 * lineRemoveCount
             lineRemoveCount = 0
-           
         } 
         score.innerHTML = scoreCount
     }
@@ -523,15 +553,16 @@ document.addEventListener('DOMContentLoaded', () => {
         myAudio.play();
     }
 
-
     leftButton.addEventListener("click", function() {
         this.blur()
         if(!isGameOver && !isPause) moveLeft()
     }) 
+
     rightButton.addEventListener("click", function() {
         this.blur()
         if(!isGameOver && !isPause) moveRight()
     }) 
+
     startButton.addEventListener("click", function() {
         this.blur()
         if(!isGameOver && isPause) {
@@ -539,6 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resumeGame()
         } 
     }) 
+
     pauseButton.addEventListener("click", function() {
         this.blur()
         if(!isGameOver) {
@@ -546,17 +578,21 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseGame()
         } 
     }) 
+
     restartButton.addEventListener("click", function() {
         this.blur()
         if(isGameOver) {
             restart()
             restartButton.style.background = "none"
+            restartButton.classList.remove("hint")
         } 
     }) 
+
     downButton.addEventListener("click", function() {
         this.blur()
         if(!isGameOver && !isPause)  moveDown() 
     })
+
     rotateButton.addEventListener("click", function() {
         if(!isGameOver && !isPause) {
             rotate()
@@ -564,6 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rotateDisable = true
         }
     })
+
     dropButton.addEventListener("click", function() {
         if(!isGameOver && !isPause) {
             drop()
@@ -571,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dropDisable = true
         }
     })
+
     musicButton.addEventListener("click", function() {
         this.blur()
         if(!isGameOver)  switchMusic() 
@@ -582,5 +620,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keyup', keyUp)
     moveId = setInterval(move, 60); 
     timeId = setInterval(moveDown, 1000)
-
 })
